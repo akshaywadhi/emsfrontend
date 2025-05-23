@@ -8,11 +8,14 @@ const axiosInstance = axios.create({
   },
 });
 
-// Attach token to every request
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    await delay(2000); 
     const accessToken = localStorage.getItem("token");
-    console.log("Access Token:", accessToken); // Debugging
+    console.log("Access Token (after delay):", accessToken);
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }

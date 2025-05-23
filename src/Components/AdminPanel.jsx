@@ -284,7 +284,7 @@ export default function AdminPanel() {
         </div>
       </aside>
       <div className="main p-3">
-        <div className="d-flex justify-content-center align-items-center">
+        <div className="d-flex flex-column justify-content-center align-items-center">
           <h1>Employee Management System</h1>
             <h2>Welcome back, Admin!</h2>
   <p>Manage employees, documents, and more from your dashboard.</p>

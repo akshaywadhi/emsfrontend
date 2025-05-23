@@ -15,7 +15,7 @@ axiosInstance.interceptors.request.use(
   async (config) => {
     await delay(2000); 
     const accessToken = localStorage.getItem("token");
-    console.log("Access Token (after delay):", accessToken);
+  
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }

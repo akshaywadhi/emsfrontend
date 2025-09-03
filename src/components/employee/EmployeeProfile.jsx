@@ -22,12 +22,15 @@ const EmployeeProfile = () => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
+        console.log("Fetching profile from /employee/profile");
         const response = await api.get("/employee/profile");
+        console.log("Profile response:", response.data);
         if (response.data.success) {
           setProfile(response.data.employee);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
+        console.error("Error response:", error.response);
         setError(error.response?.data?.message || "Failed to fetch profile");
       } finally {
         setLoading(false);
@@ -47,7 +50,9 @@ const EmployeeProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Updating profile with data:", profile);
       const response = await api.put("/employee/profile", profile);
+      console.log("Update response:", response.data);
       if (response.data.success) {
         setSuccess("Profile updated successfully");
         setIsEditing(false);
@@ -55,6 +60,8 @@ const EmployeeProfile = () => {
         setTimeout(() => setSuccess(null), 3000);
       }
     } catch (error) {
+      console.error("Error updating profile:", error);
+      console.error("Error response:", error.response);
       setError(error.response?.data?.message || "Failed to update profile");
     }
   };

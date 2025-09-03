@@ -42,7 +42,7 @@ const Register = () => {
       errors.confirmPassword = "Passwords do not match";
     }
     if (!formData.position) {
-      errors.lastName = "position is required";
+      errors.position = "position is required";
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;

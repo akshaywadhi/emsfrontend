@@ -28,6 +28,12 @@ const Reports = () => {
       }
 
       if (response.data.success) {
+        // Check if report data exists
+        if (!response.data.report || response.data.report.length === 0) {
+          setError(`No data available for ${type} report in ${selectedMonth}/${selectedYear}`);
+          return;
+        }
+
         // Generate CSV content
         let csvContent = "";
         let filename = "";
@@ -45,6 +51,9 @@ const Reports = () => {
             csvContent = generateDepartmentCSV(response.data.report);
             filename = "department_report.csv";
             break;
+          default:
+            setError("Invalid report type");
+            return;
         }
 
         // Download CSV
@@ -55,9 +64,24 @@ const Reports = () => {
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
+      } else {
+        setError("Failed to generate report");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to generate report");
+      console.error("Report generation error:", err);
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+      } else if (err.response?.status === 403) {
+        setError("Access denied. You don't have permission to generate reports.");
+      } else if (err.response?.status === 404) {
+        setError("Report endpoint not found. Please check the server configuration.");
+      } else if (err.response?.status === 500) {
+        setError("Server error. Please try again later.");
+      } else if (err.code === "ECONNREFUSED") {
+        setError("Cannot connect to server. Please check if the backend is running.");
+      } else {
+        setError(err.response?.data?.message || "Failed to generate report. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -74,16 +98,19 @@ const Reports = () => {
       "Total Days",
       "Attendance Rate",
     ];
-    const rows = report.map((record) => [
-      `${record.employee.firstName} ${record.employee.lastName}`,
-      record.employee.email,
-      record.employee.department?.name || "N/A",
-      record.present,
-      record.absent,
-      record.late,
-      record.total,
-      `${((record.present / record.total) * 100).toFixed(2)}%`,
-    ]);
+    const rows = report.map((record) => {
+      const attendanceRate = record.total > 0 ? ((record.present / record.total) * 100).toFixed(2) : "0.00";
+      return [
+        `${record.employee?.firstName || 'N/A'} ${record.employee?.lastName || 'N/A'}`,
+        record.employee?.email || 'N/A',
+        record.employee?.department?.name || "N/A",
+        record.present || 0,
+        record.absent || 0,
+        record.late || 0,
+        record.total || 0,
+        `${attendanceRate}%`,
+      ];
+    });
     return [header, ...rows]
       .map((row) => row.map((v) => `"${v}"`).join(","))
       .join("\n");
@@ -100,13 +127,13 @@ const Reports = () => {
       "Total Leaves",
     ];
     const rows = report.map((record) => [
-      `${record.employee.firstName} ${record.employee.lastName}`,
-      record.employee.email,
-      record.employee.department?.name || "N/A",
-      record.approved,
-      record.pending,
-      record.rejected,
-      record.total,
+      `${record.employee?.firstName || 'N/A'} ${record.employee?.lastName || 'N/A'}`,
+      record.employee?.email || 'N/A',
+      record.employee?.department?.name || "N/A",
+      record.approved || 0,
+      record.pending || 0,
+      record.rejected || 0,
+      record.total || 0,
     ]);
     return [header, ...rows]
       .map((row) => row.map((v) => `"${v}"`).join(","))
@@ -116,11 +143,11 @@ const Reports = () => {
   const generateDepartmentCSV = (report) => {
     const header = ["Department", "Total Employees", "Positions"];
     const rows = report.map((record) => [
-      record.department,
-      record.total,
-      Object.entries(record.positions)
+      record.department || 'N/A',
+      record.total || 0,
+      record.positions ? Object.entries(record.positions)
         .map(([pos, count]) => `${pos}: ${count}`)
-        .join(", "),
+        .join(", ") : 'N/A',
     ]);
     return [header, ...rows]
       .map((row) => row.map((v) => `"${v}"`).join(","))
